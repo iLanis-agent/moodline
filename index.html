@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Moodline - See your week the way it actually felt</title>
+<style>
+  :root { --bg:#120d14; --card:#1c1420; --edge:#342539; --ink:#f2eaf4; --dim:#b09cb6; --accent:#e08bd0; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:'Segoe UI',system-ui,sans-serif; background:var(--bg); color:var(--ink); min-height:100vh; display:flex; flex-direction:column; align-items:center; padding:48px 20px; }
+  .wrap { max-width:680px; width:100%; }
+  h1 { font-size:2.4rem; letter-spacing:-0.5px; }
+  h1 .m { color:var(--accent); }
+  p.lede { color:var(--dim); margin:16px 0 28px; font-size:1.1rem; line-height:1.55; }
+  .feats { display:grid; gap:12px; margin-bottom:32px; }
+  .feat { background:var(--card); border:1px solid var(--edge); border-radius:12px; padding:16px 18px; }
+  .feat b { color:var(--accent); }
+  .feat p { color:var(--dim); font-size:0.95rem; margin-top:4px; }
+  a.cta { display:inline-block; background:var(--accent); color:#33102b; font-weight:700; padding:14px 34px; border-radius:10px; text-decoration:none; font-size:1.05rem; }
+  a.cta:hover { filter:brightness(1.1); }
+  .foot { color:var(--dim); font-size:0.85rem; margin-top:36px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Mood<span class="m">line</span></h1>
+  <p class="lede">Memory edits the week - a bad Monday makes the whole thing look gray. Moodline keeps an honest record: ten seconds of check-in a day, and the patterns show themselves.</p>
+  <div class="feats">
+    <div class="feat"><b>Ten-second check-ins</b><p>One tap for mood 1-5, an optional tag and note. Done before the kettle boils.</p></div>
+    <div class="feat"><b>Weekday truth</b><p>Average mood by weekday reveals the dips you feel but never confirm - the Wednesday slump, the Friday lift.</p></div>
+    <div class="feat"><b>A trend that moves</b><p>This week vs last week, in one number. Plus a check-in streak that keeps the habit alive.</p></div>
+    <div class="feat"><b>Private by design</b><p>Feelings stay on your device. No account, no cloud - just local storage.</p></div>
+  </div>
+  <a class="cta" href="app.html">Open Moodline</a>
+  <p class="foot">Runs fully offline after load. Part of the App Factory experiment - a new app every hour.</p>
+</div>
+</body>
+</html>
