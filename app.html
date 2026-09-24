@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Moodline - App</title>
+<style>
+  :root { --bg:#120d14; --card:#1c1420; --edge:#342539; --ink:#f2eaf4; --dim:#b09cb6; --accent:#e08bd0; --good:#7ddc8e; --bad:#e07856; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:'Segoe UI',system-ui,sans-serif; background:var(--bg); color:var(--ink); min-height:100vh; padding:28px 18px 60px; }
+  .wrap { max-width:780px; margin:0 auto; }
+  header { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:22px; }
+  h1 { font-size:1.5rem; } h1 .m { color:var(--accent); }
+  a.home { color:var(--dim); text-decoration:none; font-size:0.9rem; }
+  section { background:var(--card); border:1px solid var(--edge); border-radius:14px; padding:20px; margin-bottom:20px; }
+  h2 { font-size:1.05rem; margin-bottom:14px; }
+  .moods { display:flex; gap:10px; flex-wrap:wrap; }
+  .moods button { flex:1; min-width:80px; padding:16px 8px; font-size:1.4rem; background:#120d14; border:1px solid var(--edge); color:var(--ink); border-radius:10px; cursor:pointer; }
+  .moods button small { display:block; font-size:0.72rem; color:var(--dim); margin-top:4px; }
+  .moods button:hover { border-color:var(--accent); }
+  .row { display:flex; gap:10px; flex-wrap:wrap; margin-top:12px; }
+  .field { display:flex; flex-direction:column; gap:5px; flex:1; min-width:130px; }
+  label { font-size:0.72rem; text-transform:uppercase; letter-spacing:0.6px; color:var(--dim); }
+  input, select, button { font:inherit; }
+  input, select { border-radius:8px; border:1px solid var(--edge); padding:10px 12px; background:#120d14; color:var(--ink); }
+  input:focus, select:focus { outline:none; border-color:var(--accent); }
+  .stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:12px; }
+  .stat { background:#120d14; border:1px solid var(--edge); border-radius:10px; padding:14px; }
+  .stat .v { font-size:1.35rem; font-weight:700; color:var(--accent); }
+  .stat .v.up { color:var(--good); } .stat .v.down { color:var(--bad); }
+  .stat .l { color:var(--dim); font-size:0.78rem; margin-top:3px; }
+  .bars { display:grid; gap:8px; }
+  .bar-row { display:flex; align-items:center; gap:10px; }
+  .bar-row .day { width:36px; color:var(--dim); font-size:0.85rem; }
+  .bar-row .track { flex:1; height:18px; background:#120d14; border:1px solid var(--edge); border-radius:6px; overflow:hidden; }
+  .bar-row .fill { height:100%; background:var(--accent); }
+  .bar-row .val { width:44px; text-align:right; font-size:0.85rem; color:var(--dim); }
+  .log { display:flex; align-items:center; gap:10px; padding:9px 4px; border-bottom:1px solid var(--edge); flex-wrap:wrap; }
+  .log:last-child { border-bottom:none; }
+  .log .emo { font-size:1.2rem; min-width:28px; }
+  .log .meta { color:var(--dim); font-size:0.85rem; flex:1; }
+  .log button.act { background:transparent; border:1px solid var(--edge); color:var(--dim); font-weight:400; font-size:0.8rem; padding:5px 10px; border-radius:8px; cursor:pointer; }
+  .log button.act:hover { color:var(--ink); border-color:var(--accent); }
+  .empty { color:var(--dim); text-align:center; padding:16px; font-size:0.95rem; }
+  .note { color:var(--dim); font-size:0.85rem; margin-top:10px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Mood<span class="m">line</span></h1>
+    <a class="home" href="index.html">&larr; Home</a>
+  </header>
+
+  <section>
+    <h2>How are you right now?</h2>
+    <div class="moods" id="mood-btns"></div>
+    <div class="row">
+      <div class="field"><label>Tag (optional)</label><select id="f-tag"><option value="">none</option></select></div>
+      <div class="field" style="flex:2"><label>Note (optional)</label><input id="f-note" type="text" maxlength="80" placeholder="one line about the day"></div>
+    </div>
+    <div class="note" id="pick-note">Pick a mood above to check in.</div>
+  </section>
+
+  <section>
+    <h2>Your week</h2>
+    <div class="stats">
+      <div class="stat"><div class="v" id="s-avg">-</div><div class="l">7-day average</div></div>
+      <div class="stat"><div class="v" id="s-trend">-</div><div class="l">vs previous 7 days</div></div>
+      <div class="stat"><div class="v" id="s-best">-</div><div class="l">your best weekday</div></div>
+      <div class="stat"><div class="v" id="s-worst">-</div><div class="l">your hardest weekday</div></div>
+      <div class="stat"><div class="v" id="s-streak">0</div><div class="l">check-in streak</div></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Weekday pattern</h2>
+    <div class="bars" id="bars"></div>
+    <div class="note">Averages across all your check-ins, by day of week.</div>
+  </section>
+
+  <section>
+    <h2>Recent check-ins</h2>
+    <div id="list"><div class="empty">No check-ins yet.</div></div>
+  </section>
+</div>
+
+<script src="engine.js"></script>
+<script>
+(function () {
+  var KEY = 'moodline-entries';
+  var $ = function (id) { return document.getElementById(id); };
+  var EMO = ['', '\u{1F614}', '\u{1F615}', '\u{1F610}', '\u{1F642}', '\u{1F604}'];
+  var NAMES = ['', 'low', 'meh', 'okay', 'good', 'great'];
+
+  function load() { try { return JSON.parse(localStorage.getItem(KEY)) || []; } catch (e) { return []; } }
+  function save(list) { localStorage.setItem(KEY, JSON.stringify(list)); }
+
+  var moodWrap = $('mood-btns');
+  for (var m = 1; m <= 5; m++) {
+    (function (v) {
+      var b = document.createElement('button');
+      b.innerHTML = EMO[v] + '<small>' + NAMES[v] + '</small>';
+      b.addEventListener('click', function () { checkIn(v); });
+      moodWrap.appendChild(b);
+    })(m);
+  }
+  MoodEngine.TAGS.forEach(function (t) {
+    var o = document.createElement('option');
+    o.value = t;
+    o.textContent = t;
+    $('f-tag').appendChild(o);
+  });
+
+  function checkIn(mood) {
+    var entries = load();
+    entries.push({
+      id: 'm' + Date.now() + Math.floor(Math.random() * 1000),
+      mood: mood,
+      tag: $('f-tag').value || null,
+      note: $('f-note').value.trim() || null,
+      at: new Date().toISOString()
+    });
+    save(entries);
+    $('f-note').value = '';
+    $('f-tag').value = '';
+    render();
+  }
+
+  function fmtWhen(d) {
+    return d.toLocaleDateString([], { month: 'short', day: 'numeric' }) + ' ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  }
+
+  function render() {
+    var entries = load();
+    var now = new Date();
+    var week = MoodEngine.recent(entries, 7, now);
+    var avg7 = MoodEngine.avg(week);
+    var tr = MoodEngine.trend(entries, 7, now);
+    var bw = MoodEngine.bestWorstWeekday(entries);
+
+    $('s-avg').textContent = week.length ? avg7 + ' - ' + MoodEngine.label(avg7) : '-';
+    var trEl = $('s-trend');
+    if (tr === null) { trEl.textContent = '-'; trEl.className = 'v'; }
+    else {
+      trEl.textContent = (tr > 0 ? '+' : '') + tr;
+      trEl.className = 'v ' + (tr > 0 ? 'up' : (tr < 0 ? 'down' : ''));
+    }
+    $('s-best').textContent = bw.best ? bw.best.day + ' (' + bw.best.avg + ')' : '-';
+    $('s-worst').textContent = bw.worst ? bw.worst.day + ' (' + bw.worst.avg + ')' : '-';
+    $('s-streak').textContent = MoodEngine.streak(entries, now);
+
+    var bars = $('bars');
+    bars.innerHTML = '';
+    MoodEngine.byWeekday(entries).forEach(function (w) {
+      var row = document.createElement('div');
+      row.className = 'bar-row';
+      var pct = w.count ? (w.avg / 5 * 100) : 0;
+      row.innerHTML = '<span class="day">' + w.day + '</span>' +
+        '<span class="track"><span class="fill" style="display:block;width:' + pct + '%"></span></span>' +
+        '<span class="val">' + (w.count ? w.avg : '-') + '</span>';
+      bars.appendChild(row);
+    });
+
+    var list = $('list');
+    list.innerHTML = '';
+    if (!entries.length) list.innerHTML = '<div class="empty">No check-ins yet.</div>';
+    entries.slice().reverse().slice(0, 20).forEach(function (x) {
+      var row = document.createElement('div');
+      row.className = 'log';
+      row.innerHTML = '<span class="emo">' + EMO[x.mood] + '</span><span class="meta">' + fmtWhen(new Date(x.at)) +
+        (x.tag ? ' &middot; ' + x.tag : '') + (x.note ? ' &middot; <i></i>' : '') + '</span><button class="act">Remove</button>';
+      if (x.note) row.querySelector('i').textContent = x.note;
+      row.querySelector('button').addEventListener('click', function () {
+        save(load().filter(function (y) { return y.id !== x.id; }));
+        render();
+      });
+      list.appendChild(row);
+    });
+
+    $('pick-note').textContent = entries.length ? 'Checked in ' + entries.length + ' times so far. Keep the line going.' : 'Pick a mood above to check in.';
+  }
+
+  render();
+})();
+</script>
+</body>
+</html>
